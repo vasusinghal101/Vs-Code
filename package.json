@@ -1,0 +1,17 @@
+{
+  "name": "vs-code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron-reload": "^1.5.0",
+    "jquery": "^3.5.1",
+    "jstree": "^3.3.10",
+    "monaco-editor": "^0.20.0"
+  }
+}
