@@ -2,8 +2,33 @@ const $ = require('jquery');
 require('jstree');
 const nodePath = require('path');
 const fs = require('fs');
+var os = require('os');
+var pty = require('node-pty');
+var Terminal = require('xterm').Terminal;
 
 $(document).ready(async function () {
+
+     // Initialize node-pty with an appropriate shell
+     const shell = process.env[os.platform() === 'win32' ? 'COMSPEC' : 'SHELL'];
+     const ptyProcess = pty.spawn(shell, [], {
+         name: 'xterm-color',
+         cols: 80,
+         rows: 30,
+         cwd: process.cwd(),
+         env: process.env
+     });
+ 
+     // Initialize xterm.js and attach it to the DOM
+     const xterm = new Terminal();
+     xterm.open(document.getElementById('terminal'));
+ 
+     // Setup communication between xterm.js and node-pty
+     xterm.onData(data => ptyProcess.write(data));
+     ptyProcess.on('data', function (data) {
+         xterm.write(data);
+     });
+
+
     let editor = await createEditor();
     console.log(editor);
 
@@ -38,7 +63,32 @@ $(document).ready(async function () {
             })
 
         })
+    }).on("select_node.jstree", function (e, data) {
+        console.log(data.node.id);
+        updateEditor(data.node.id);
+
     });
+
+    function updateEditor(path){
+
+        if (fs.lstatSync(path).isDirectory()) {
+            return;
+        }
+
+        let fileName = getNameFrompath(path);
+
+        
+        let fileExtension = fileName.split('.')[1];
+
+        if(fileExtension === 'js')
+            fileExtension = 'javascript'
+        
+        let data = fs.readFileSync(path).toString();
+        editor.setValue(data);
+
+        monaco.editor.setModelLanguage(editor.getModel(), fileExtension);
+
+    }
 
 })
 
